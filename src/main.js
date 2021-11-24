@@ -6,20 +6,12 @@ import './assets/tailwind.css';
 import Axios from 'axios';
 import VueCookies from 'vue-cookies';
 import VueSocketIO from 'vue-socket.io';
-import Paginate from 'vuejs-paginate';
-
-
-Vue.use(VueCookies);
-
-Vue.use(new VueSocketIO({
-  debug: true,
-  connection: 'http://localhost:5000',
-  vuex: {
-    store,
-    actionPrefix: 'SOCKET_',
-    mutationPrefix: 'SOCKET_',
-  },
-}));
+import Notifications from 'vue-notification';
+import VueTailwind from 'vue-tailwind';
+import { settings } from './vueTailwindSettings';
+import SocketIO from 'socket.io-client';
+import vClickOutside from 'v-click-outside';
+import VueImg from 'v-img';
 
 Axios.defaults.withCredentials = true;
 Axios.defaults.baseURL = 'http://localhost:5000/api';
@@ -35,10 +27,29 @@ Axios.interceptors.response.use((response) => {
   if (error.response.status === 404) {
     router.push({ name: '404' });
   }
-  return Promise.reject(error.message);
+  return Promise.reject(error);
 });
 
-Vue.component('paginate', Paginate);
+Vue.use(VueCookies);
+
+Vue.use(new VueSocketIO({
+  debug: true,
+  connection: SocketIO('http://localhost:5000', {
+    autoConnect: false,
+    withCredentials: true,
+    transports: ['websocket'],
+  }),
+  vuex: {
+    store,
+    actionPrefix: 'SOCKET_',
+    mutationPrefix: 'SOCKET_',
+  },
+}));
+
+Vue.use(Notifications);
+Vue.use(VueTailwind, settings);
+Vue.use(vClickOutside);
+Vue.use(VueImg);
 
 new Vue({
   render: h => h(App),

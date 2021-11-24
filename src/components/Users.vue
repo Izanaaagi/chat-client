@@ -1,7 +1,7 @@
 <template>
-  <div v-if='!loading' class=' antialiased font-sans '>
+  <div v-if='!loading' class='antialiased font-sans'>
     <div class='container mx-auto px-4 sm:px-8'>
-      <div class='py-8'>
+      <div class='py-4'>
         <div>
           <h2 class='text-2xl font-semibold leading-tight'>Users</h2>
         </div>
@@ -9,8 +9,9 @@
           <div class='flex flex-row mb-1 sm:mb-0'>
             <div class='relative'>
               <select
-                v-model='usersCount'
-                @change='onCountChange'
+                :disabled='disablePagination'
+                v-model='take'
+                @change='onValueChange'
                 class='appearance-none h-full rounded-l border block appearance-none w-full bg-white border-gray-400 text-gray-700 py-2 px-4 pr-8 leading-tight focus:outline-none focus:bg-white focus:border-gray-500'>
                 <option>5</option>
                 <option>10</option>
@@ -25,10 +26,13 @@
             </div>
             <div class='relative'>
               <select
+                :disabled='disablePagination'
+                @change='onValueChange'
+                v-model='isOnline'
                 class='appearance-none h-full rounded-r border-t sm:rounded-r-none sm:border-r-0 border-r border-b block appearance-none w-full bg-white border-gray-400 text-gray-700 py-2 px-4 pr-8 leading-tight focus:outline-none focus:border-l focus:border-r focus:bg-white focus:border-gray-500'>
-                <option>All</option>
-                <option>Active</option>
-                <option>Inactive</option>
+                <option :value='null'>All</option>
+                <option :value='true'>Active</option>
+                <option :value='false'>Inactive</option>
               </select>
               <div
                 class='pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700'>
@@ -46,13 +50,17 @@
                             </path>
                         </svg>
                     </span>
-            <input placeholder='Search'
-                   class='appearance-none rounded-r rounded-l sm:rounded-l-none border border-gray-400 border-b block pl-8 pr-6 py-2 w-full bg-white text-sm placeholder-gray-400 text-gray-700 focus:bg-white focus:placeholder-gray-600 focus:text-gray-700 focus:outline-none' />
+            <input
+              placeholder='Name'
+              v-model='keyWord'
+              :disabled='disablePagination'
+              @keypress.enter='onValueChange'
+              class='appearance-none rounded-r rounded-l sm:rounded-l-none border border-gray-400 border-b block pl-8 pr-6 py-2 w-full bg-white text-sm placeholder-gray-400 text-gray-700 focus:bg-white focus:placeholder-gray-600 focus:text-gray-700 focus:outline-none' />
           </div>
         </div>
-        <div class='-mx-4 sm:-mx-8 px-4 sm:px-8 py-4 overflow-x-auto' style='max-height: 460px'>
+        <div class='-mx-4 sm:-mx-8 px-4 sm:px-8 py-4 overflow-x-auto' style='max-height: 485px'>
           <div class='inline-block min-w-full shadow rounded-lg overflow-hidden'>
-            <table class='min-w-full leading-normal'>
+            <table v-if='usersList.count > 0' class='min-w-full leading-normal'>
               <thead>
               <tr>
                 <th
@@ -65,7 +73,7 @@
                 </th>
                 <th
                   class='px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider'>
-                  Created at
+                  Last online
                 </th>
                 <th
                   class='px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider'>
@@ -83,7 +91,7 @@
                   <div class='flex items-center'>
                     <div class='flex-shrink-0 w-10 h-10'>
                       <img class='w-full h-full rounded-full'
-                           src='https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2.2&w=160&h=160&q=80'
+                           :src='user.avatar '
                            alt='' />
                     </div>
                     <div class='ml-3'>
@@ -97,35 +105,47 @@
                   <p class='text-gray-900 whitespace-no-wrap'>{{ user.email }}</p>
                 </td>
                 <td class='px-5 py-5 border-b border-gray-200 bg-white text-sm'>
-                  <p class='text-gray-900 whitespace-no-wrap'>
-                    Jan 21, 2020
+                  <p v-if='user.is_online' class='font-bold text-gray-900 whitespace-no-wrap'>
+                    ----------------->
+                  </p>
+                  <p v-else class='text-gray-900 whitespace-no-wrap'>
+                    {{ user.last_online_date | dateMonthDayHoursMinutes }}
                   </p>
                 </td>
                 <td class='px-5 py-5 border-b border-gray-200 bg-white text-sm'>
-                                    <span
-                                      class='relative inline-block px-3 py-1 font-semibold text-green-900 leading-tight'>
-                                        <span aria-hidden
-                                              class='absolute inset-0 bg-green-200 opacity-50 rounded-full'></span>
-                                        <span class='relative'>Activo</span>
-                                    </span>
+                  <span
+                    v-if='user.is_online'
+                    class='relative inline-block px-3 py-1 font-semibold text-green-900 leading-tight'>
+                    <span aria-hidden
+                          class='absolute inset-0 bg-green-200 opacity-50 rounded-full'></span>
+                    <span class='relative'>Online</span>
+                  </span>
+                  <span
+                    v-else
+                    class='relative inline-block px-3 py-1 font-semibold text-green-900 leading-tight'>
+                    <span aria-hidden
+                          class='absolute inset-0 bg-red-200 opacity-50 rounded-full'></span>
+                    <span class='relative'>Offline</span>
+                  </span>
                 </td>
               </tr>
               </tbody>
             </table>
+            <div class='h-full flex flex-col items-center justify-center' v-else>
+              <span class='text-gray-400 font-bold text-2xl'>There are no other users yet</span>
+            </div>
           </div>
         </div>
         <div
           class='px-5 py-5 border-t flex flex-col xs:flex-row items-center xs:justify-between          '>
-                        <span class='text-xs xs:text-sm text-gray-900'>
-                            Showing 1 to 4 of {{ usersList.count }} Entries
-                        </span>
-          <div class='inline-flex mt-2 xs:mt-0'>
-            <paginate
-              class='flex flex-row pagination'
-              :prevText="'<-'"
-              :nextText="'->'"
-              :clickHandler='clickCallback'
-              :pageCount=pagesCount></paginate>
+          <div class='inline-flex xs:mt-0' v-if='usersList.count > 0'>
+            <t-pagination :total-items='usersList.count'
+                          :value='currentPage'
+                          :per-page='take'
+                          :limit='5'
+                          :disabled='disablePagination'
+                          @change='clickCallback'
+            ></t-pagination>
           </div>
         </div>
       </div>
@@ -135,55 +155,75 @@
 
 <script>
 import { mapActions, mapGetters } from 'vuex';
+import dateFormat from 'dateformat';
 
 export default {
   name: 'Users',
   data() {
     return {
       loading: true,
-      usersCount: 5,
+      disablePagination: false,
+      take: 5,
       currentPage: 1,
       keyWord: '',
+      isOnline: null,
     };
   },
   methods: {
     ...mapActions(['getAllUsers']),
     clickCallback(pageNum) {
       this.currentPage = pageNum;
-      this.getAllUsers({
-        take: this.usersCount,
-        skip: this.skip,
-        keyWord: this.keyWord,
-      }).then(() => this.$router.replace({ name: 'users', params: { page: this.currentPage } }));
+      this.getAllUsersWithParams();
     },
-    onCountChange() {
-      this.getAllUsers({
-        take: this.usersCount,
-        skip: this.skip,
-        keyWord: this.keyWord,
-      });
+    onValueChange() {
+      this.getAllUsersWithParams();
     },
     goToChat(id) {
       this.$router.push({ name: 'chat', params: { id: id } });
+    },
+    getAllUsersWithParams() {
+      this.disablePagination = true;
+      return this.getAllUsers({
+        params: {
+          take: this.take,
+          skip: this.skip,
+          keyWord: this.keyWord,
+          isOnline: this.isOnline,
+        },
+      }).then(() => this.disablePagination = false);
     },
   },
   computed: {
     ...mapGetters(['usersList']),
     pagesCount() {
-      return Math.ceil(this.usersList.count / this.usersCount);
+      return Math.ceil(this.usersList.count / this.take);
     },
     skip() {
-      return (this.currentPage - 1) * this.usersCount;
+      return (this.currentPage - 1) * this.take;
     },
   },
   mounted() {
     if (this.$route.params.page) {
       this.currentPage = this.$route.params.page;
     }
-    Promise.all([this.getAllUsers({ take: this.usersCount, skip: this.skip, keyWord: '' })])
+    return Promise.all([this.getAllUsersWithParams()])
       .then(() => {
-        this.currentPage <= this.pagesCount ? this.loading = false : this.$router.push({ name: '404' });
+        if (this.pagesCount !== 0 && this.currentPage > this.pagesCount) {
+          this.$router.push({ name: '404' });
+        } else {
+          this.loading = false;
+        }
       });
+  },
+  sockets: {
+    updateUsersStatus() {
+      this.getAllUsersWithParams();
+    },
+  },
+  filters: {
+    dateMonthDayHoursMinutes(date) {
+      return dateFormat(date, 'mmmm d, HH:MM');
+    },
   },
 };
 </script>
