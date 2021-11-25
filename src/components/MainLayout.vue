@@ -72,11 +72,11 @@
               <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M7 16l-4-4m0 0l4-4m-4 4h18' />
             </svg>
           </div>
-          <div class='w-32 h-32 rounded-full m-auto mt-16 border-2 border-white bg-white shadow-lg'>
+          <div class='w-32 h-32 rounded-full m-auto mt-16 shadow-lg'>
             <img
               v-img='{cursor: "pointer"}'
               :src='authUser.avatar'
-              alt='user' class='block rounded-full'>
+              alt='user' class='block rounded-full w-32 h-32'>
           </div>
           <div class='text-gray-800 mt-8'>
             <button
