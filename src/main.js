@@ -13,8 +13,10 @@ import SocketIO from 'socket.io-client';
 import vClickOutside from 'v-click-outside';
 import VueImg from 'v-img';
 
+const BASE_URL = process.env.NODE_ENV === 'development' ? 'http://localhost:5000' : 'http://139.185.41.90:5000';
+
 Axios.defaults.withCredentials = true;
-Axios.defaults.baseURL = 'http://localhost:5000/api';
+Axios.defaults.baseURL = `${BASE_URL}/api`;
 
 Axios.interceptors.response.use((response) => {
   return response;
@@ -34,7 +36,7 @@ Vue.use(VueCookies);
 
 Vue.use(new VueSocketIO({
   debug: true,
-  connection: SocketIO('http://localhost:5000', {
+  connection: SocketIO(BASE_URL, {
     autoConnect: false,
     withCredentials: true,
     transports: ['websocket'],
