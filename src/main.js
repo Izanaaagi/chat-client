@@ -13,7 +13,7 @@ import SocketIO from 'socket.io-client';
 import vClickOutside from 'v-click-outside';
 import VueImg from 'v-img';
 
-const BASE_URL = process.env.NODE_ENV === 'development' ? 'http://localhost:5000' : 'http://139.185.41.90:5000';
+const BASE_URL = process.env.NODE_ENV === 'development' ? 'http://localhost:5000' : 'http://chat.projects.ga:5000';
 
 Axios.defaults.withCredentials = true;
 Axios.defaults.baseURL = `${BASE_URL}/api`;
