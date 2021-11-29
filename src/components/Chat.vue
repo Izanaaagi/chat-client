@@ -56,7 +56,7 @@
             <div class='flex-2 text-right'>
               <div><small
                 class='text-gray-500'>{{ Date.parse(chat.lastMessage.created_at) | dateMonthDay }}</small></div>
-              <div v-if='chat.unreadMessagesCount'>
+              <div v-if='chat.unreadMessagesCount > 0'>
                 <small
                   class='text-xs bg-red-500 text-white rounded-full h-6 w-6 leading-6 text-center inline-block'>
                   {{ chat.unreadMessagesCount }}
@@ -271,7 +271,10 @@ export default {
   },
   methods: {
     ...mapActions(['getChatsByKeyWord', 'getAllUsers', 'getUserById', 'getMessages', 'getAllChats', 'getUpdatedChats']),
-    ...mapMutations(['DELETE_MESSAGES', 'UPDATE_MESSAGES', 'ADD_MESSAGE', 'UPDATE_CHAT_UNREAD_MESSAGES', 'UPDATE_USER_ONLINE_STATUS']),
+    ...mapMutations(
+      [
+        'DELETE_MESSAGES', 'UPDATE_MESSAGES', 'ADD_MESSAGE',
+        'UPDATE_CHAT_UNREAD_MESSAGES', 'UPDATE_USER_ONLINE_STATUS', 'DELETE_CHATS']),
     sendMessage() {
       if (this.message !== '' || this.uploadFile) {
         const sendMessageDTO = {
@@ -400,7 +403,9 @@ export default {
       });
     },
     updateChats() {
-      this.$refs.chatInfiniteLoading.stateChanger.reset();
+      if (this.$refs.chatInfiniteLoading) {
+        this.$refs.chatInfiniteLoading.stateChanger.reset();
+      }
       this.getUpdatedChats();
     },
     searchByKeyWord() {
@@ -460,6 +465,7 @@ export default {
       this.$socket.emit('leaveRoom', this.currentChatRoom);
     }
     this.DELETE_MESSAGES();
+    this.DELETE_CHATS();
   },
   sockets: {
     receiveMessage(message) {

@@ -81,6 +81,11 @@ export const store = new Vuex.Store({
         state.chats = chats;
       }
     },
+    DELETE_CHATS: (state) => {
+      state.chats = [];
+      state.chatsPage = 1;
+      state.isChatsEnd = false;
+    },
     SET_UPDATED_CHATS: (state, chats) => {
       state.chatsPage = 1;
       state.isChatsEnd = false;
@@ -168,9 +173,13 @@ export const store = new Vuex.Store({
         .then(response => {
           if (response.status === 204) {
             context.commit('CHANGE_MESSAGES_END_STATUS', true);
-          } else {
-            context.commit('CHANGE_MESSAGES_END_STATUS', false);
+          } else if (response.data.count > 0) {
             context.commit('SET_MESSAGES', response.data.messages);
+            context.commit('CHANGE_MESSAGES_END_STATUS', false);
+            context.commit('SET_CHAT_ROOM', response.data.roomId);
+            context.commit('SET_MESSAGES_COUNT', response.data.count);
+          } else if (response.data.count === 0) {
+            context.commit('CHANGE_MESSAGES_END_STATUS', true);
             context.commit('SET_CHAT_ROOM', response.data.roomId);
             context.commit('SET_MESSAGES_COUNT', response.data.count);
           }
