@@ -1,24 +1,34 @@
-# chat-front
+# Chat Client
 
-## Project setup
-```
-npm install
-```
+## Description
+Fullstack chat project with frontend on vue and [backend](https://github.com/Izanaaagi/chat-server) on nestjs.
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
+Simple app to communicate with other people.
 
-### Compiles and minifies for production
-```
-npm run build
-```
+#### [DEMO](http://chat.projects.ga)
 
-### Lints and fixes files
-```
-npm run lint
-```
+## Overview
+![Project overview](./chat-overview.gif)
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+## Features
+- Registration
+- Authentication
+- Load(change) avatar
+- Change name
+- Chek online users status
+- Users list
+    - Search by username
+    - Filter Online / Offline
+    - Change count users per page
+- Rooms list
+    - Search chat by username
+- Emojis
+- Send messages
+- Send photos
+
+## Technologies
+- Vue 2
+    - Vuex
+    - Vue Router
+- Socket.io
+- Tailwindcss 
